@@ -1,25 +1,136 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: "Reproducible Research Project 1"
+author: "janneke.js"
+date: "2-7-2020"
+output: html_document
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
-## Loading and preprocessing the data
+## Loading and preprocessing the data.
+Read in the data:
+```{r}
+data <- read.csv("./repdata_data_activity/activity.csv")
+head(data)
+```
 
+Remove missing values:
+```{r}
+data.complete <- na.omit(data)
+```
 
 
 ## What is mean total number of steps taken per day?
+#### 1. Calculate the total number of steps taken per day. 
+```{r}
+library(tidyverse)
+activity_day <- group_by(data.complete, date)
+activity_day <- summarize(activity_day, steps=sum(steps))
+activity_day
+summary(activity_day)
+
+```
+
+#### 2. Make a histogram of the total number of steps taken each day.
 
 
+```{r}
+qplot(steps, data=activity_day)
+```
+
+#### 3. Calculate and report the mean and median of the total number of steps taken per day
+
+```{r}
+meansteps_day <- mean(activity_day$steps)
+meansteps_day
+
+mediansteps_day <- median(activity_day$steps)
+mediansteps_day
+```
 
 ## What is the average daily activity pattern?
+#### 1. Make a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all days (y-axis). 
 
+```{r}
+activity_interval <- group_by(data.complete, interval)
+activity_interval <- summarize(activity_interval, steps=mean(steps))
 
+library(ggplot2)
+
+plot(steps~interval, data = activity_interval, type = "l")
+```
+
+#### 2. Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
+```{r}
+interval_maxsteps <- activity_interval[which.max(activity_interval$steps),]$interval
+interval_maxsteps
+```
 
 ## Imputing missing values
+#### 1. Calculate and report the total number of missing values in the dataset.
+```{r}
+NA_data <- sum(is.na(data))
+NA_data
+```
+#### 2. Devise a strategy for filling in all of the missing values in the dataset. The strategy does not need to be sophisticated. For example, you could use the mean/median for that day, or the mean for that 5-minute interval, etc.
 
+```{r}
+meansteps_interval <-function(interval){
+    activity_interval[activity_interval$interval==interval,]$steps
+}
+
+```
+
+#### 3. Create a new dataset that is equal to the original dataset but with the missing data filled in.
+```{r}
+for(i in 1:nrow(data)){
+    if(is.na(data[i,]$steps)){
+        data[i,]$steps <- meansteps_interval(data[i,]$interval)
+    }
+}
+
+```
+
+#### 4. Make a histogram of the total number of steps taken each day and Calculate and report the mean and median total number of steps taken per day. Do these values differ from the estimates from the first part of the assignment? What is the impact of imputing missing data on the estimates of the total daily number of steps?
+
+```{r}
+totalsteps_day <- aggregate(steps ~ date, data=data, sum)
+hist(totalsteps_day$steps)
+
+totalsteps_day_mean <- mean(totalsteps_day$steps)
+totalsteps_day_mean
+meansteps_day
+totalsteps_day_median <- median(totalsteps_day$steps)
+totalsteps_day_median
+mediansteps_day
+
+totalsteps_day_median - mediansteps_day
+```
+The mean steps/day did not change after imputing the mean value replacing the missing values. The median differed 1.188679 points. 
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+#### 1. Create a new factor variable in the dataset with two levels – “weekday” and “weekend” indicating whether a given date is a weekday or weekend day.
+```{r}
+totalsteps_day$weekdays <- weekdays(as.Date(totalsteps_day$date))
+totalsteps_day$weekend <-as.factor(totalsteps_day$weekdays=="zaterday"|totalsteps_day$weekdays=="zondag")
+levels(totalsteps_day$weekend) <- c("Weekday", "Weekend")
+```
+
+#### 2. Make a panel plot containing a time series plot of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis). 
+I tried but was unable to perform this last assignment. I somehow can't get to produce the figure since my R is giving me the message that it doesn't recognise the valuable "interval" and when I tried renaming the variables I had to define xlim values, but I can't figure out what it means or how to do it. I tried the following (can't put this in my R chunck because the system can't knit errors): plot(steps ~ interval | date, data = totalsteps_day, type = "l")
+```{r}
+View(totalsteps_day)
+
+names(totalsteps_day) <- c("date", "steps", "weekdays", "interval")
+View(totalsteps_day)
+
+
+weekday_data <- totalsteps_day[totalsteps_day$weekdays=="Weekday",]
+weekend_data <- totalsteps_day[totalsteps_day$weekend=="Weekend",]
+
+
+```
+
