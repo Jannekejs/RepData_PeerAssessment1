@@ -4,7 +4,10 @@
 
 
 
-I tried very hard to get my figures to be uploaded in this document. I also digged through the Discussions page on Coursera, but I can't find the solution. Therefore, I uploaded the figures separately in the Repository. Please have a look at them!
+I tried very hard to get my figures to be uploaded in this document. 
+I also digged through the Discussions page on Coursera, but I can't find the solution. 
+Therefore, I uploaded the figures separately in the Repository. Please have a look at them!
+The figures can also be seen in the PDF document uploaded in the repository. 
 
 
 
